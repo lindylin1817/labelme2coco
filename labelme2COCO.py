@@ -63,18 +63,22 @@ class labelme2coco(object):
 
     def categorie(self,label):
         categorie={}
-#        categorie['supercategory'] = label[0]
-        categorie['supercategory'] = label
+        categorie['supercategory'] = label[0]
+#        categorie['supercategory'] = label
         categorie['id']=len(self.label)+1
-        categorie['name'] = label
+        categorie['name'] = label[0]
 #        categorie['name'] = label[1]
         return categorie
 
     def annotation(self,points,label,num):
         annotation={}
         print(points)
+        contour = np.array(points)
+        area = cv2.contourArea(contour)
+        print("area = " + str(area))
         annotation['segmentation']=[list(np.asarray(points).flatten())]
         annotation['iscrowd'] = 0
+        annotation['area'] = area
         annotation['image_id'] = num+1
 
 
