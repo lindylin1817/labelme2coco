@@ -1,7 +1,7 @@
 # labelme2coco
 The difference between labelme and COCO JSON file
 -------------------------------------------------
-1. In label me, each BBOX is presented as [[x1,y1], [x2, y2]]. For example \<br>
+1. In label me, each BBOX is presented as [[x1,y1], [x2, y2]]. For example \
 ```
 "points": [
         [
@@ -13,7 +13,7 @@ The difference between labelme and COCO JSON file
           362.4285714285714
         ]
 ```
-   But in COCO JSON file, the "bbox" is presented as [x1, y1, width, height] \<br>
+   But in COCO JSON file, the "bbox" is presented as [x1, y1, width, height] \
 ```
    "bbox": [
                 [
