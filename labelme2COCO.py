@@ -8,6 +8,8 @@ import numpy as np
 import glob
 import PIL.Image
 
+REQUIRE_MASK = False
+
 class labelme2coco(object):
     def __init__(self,labelme_json=[],save_json_path='./new.json'):
         '''
@@ -24,25 +26,29 @@ class labelme2coco(object):
         self.annID=1
         self.height=0
         self.width=0
-
+        self.require_mask = REQUIRE_MASK
         self.save_json()
 
     def data_transfer(self):
         for num,json_file in enumerate(self.labelme_json):
-            with open(json_file,'r') as fp:
-                data = json.load(fp)
-                self.images.append(self.image(data,num))
-                for shapes in data['shapes']:
-                    label=shapes['label'].split('_')
-                    print(label)
-#                    if label[1] not in self.label:
-                    if label not in self.label:
-                        self.categories.append(self.categorie(label))
-#                        self.label.append(label[1])
-                        self.label.append(label)
-                    points=shapes['points']
-                    self.annotations.append(self.annotation(points,label,num))
-                    self.annID+=1
+            if not json_file == self.save_json_path:
+                with open(json_file,'r') as fp:
+                    data = json.load(fp)
+                    self.images.append(self.image(data,num))
+                    for shapes in data['shapes']:
+                        print("label is ")
+                        print(shapes['label'])
+                        label=shapes['label']
+    #                    if label[1] not in self.label:
+                        if label not in self.label:
+                            print("find new category: ")
+                            self.categories.append(self.categorie(label))
+                            print(self.categories)
+                            # self.label.append(label[1])
+                            self.label.append(label)
+                        points=shapes['points']
+                        self.annotations.append(self.annotation(points,label,num))
+                        self.annID+=1
 
     def image(self,data,num):
         image={}
@@ -63,26 +69,38 @@ class labelme2coco(object):
 
     def categorie(self,label):
         categorie={}
-        categorie['supercategory'] = label[0]
+        categorie['supercategory'] = label
 #        categorie['supercategory'] = label
         categorie['id']=len(self.label)+1
-        categorie['name'] = label[0]
+        categorie['name'] = label
 #        categorie['name'] = label[1]
         return categorie
 
     def annotation(self,points,label,num):
         annotation={}
         print(points)
-        contour = np.array(points)
+        x1 = points[0][0]
+        y1 = points[0][1]
+        x2 = points[1][0]
+        y2 = points[1][1]
+        contour = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]]) #points = [[x1, y1], [x2, y2]] for rectangle
+        contour = contour.astype(int)
         area = cv2.contourArea(contour)
-        print("area = " + str(area))
-        annotation['segmentation']=[list(np.asarray(points).flatten())]
+        print("contour is ", contour, " area = ", area)
+        annotation['segmentation']= [list(np.asarray([[x1, y1], [x2, y1], [x2, y2], [x1, y2]]).flatten())]
+            #[list(np.asarray(contour).flatten())]
         annotation['iscrowd'] = 0
         annotation['area'] = area
         annotation['image_id'] = num+1
 
-
-        annotation['bbox'] = list(map(float,self.getbbox(points)))
+        if self.require_mask:
+            annotation['bbox'] = list(map(float,self.getbbox(points)))
+        else:
+            x1 = points[0][0]
+            y1 = points[0][1]
+            width = points[1][0] - x1
+            height = points[1][1] - y1
+            annotation['bbox']= list(np.asarray([x1, y1, width, height]).flatten())
 
         annotation['category_id'] = self.getcatid(label)
         annotation['id'] = self.annID
@@ -143,7 +161,7 @@ class labelme2coco(object):
         json.dump(self.data_coco, open(self.save_json_path, 'w'), indent=4)  
 
 print("dsfdsfds")
-labelme_json=glob.glob('./mydata/*.json')
-# labelme_json=['./1.json']
 
-labelme2coco(labelme_json,'./new.json')
+labelme_json=glob.glob('./validate/*.json')
+# labelme_json=['./1.json']
+labelme2coco(labelme_json,'./annotations/validate.json')
