@@ -160,8 +160,7 @@ class labelme2coco(object):
         print(self.save_json_path)
         json.dump(self.data_coco, open(self.save_json_path, 'w'), indent=4)  
 
-print("dsfdsfds")
+
 
 labelme_json=glob.glob('./validate/*.json')
-# labelme_json=['./1.json']
 labelme2coco(labelme_json,'./annotations/validate.json')
